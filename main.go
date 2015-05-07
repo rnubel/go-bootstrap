@@ -44,6 +44,17 @@ func recursiveSearchReplaceFiles(fullpath string, replacers map[string]string) e
 	return nil
 }
 
+func createDatabase(name string) {
+	log.Print("Creating a database named " + name + "...")
+	if exec.Command("dropdb", name).Run() == nil {
+		log.Print("Dropped existing PostgreSQL database: " + name)
+	}
+
+	if exec.Command("createdb", name).Run() != nil {
+		log.Print("Unable to create PostgreSQL database: " + name)
+	}
+}
+
 func main() {
 	dir := flag.String("dir", "", "directory of project relative to $GOPATH/src/")
 	flag.Parse()
@@ -81,15 +92,8 @@ func main() {
 	}
 
 	// 4. Create PostgreSQL databases.
-	log.Print("Creating a database named " + repoName + "...")
-	if exec.Command("createdb", repoName).Run() != nil {
-		log.Print("Unable to create PostgreSQL database: " + repoName)
-	}
-
-	log.Print("Creating a database named " + repoName + "-test" + "...")
-	if exec.Command("createdb", repoName+"-test").Run() != nil {
-		log.Print("Unable to create PostgreSQL database: " + repoName + "-test")
-	}
+	createDatabase(repoName)
+	createDatabase(repoName + "-test")
 
 	// 5.a. go get github.com/mattes/migrate.
 	log.Print("Installing github.com/mattes/migrate...")
